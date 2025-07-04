@@ -20,7 +20,7 @@ bun run dev
 ### 환경 구성 테스트
 
 ```
-bun run lint-format
+bun run format-lint
 ```
 
 > 커밋 이전에 위의 명령어를 실행하고 커밋을 진행
