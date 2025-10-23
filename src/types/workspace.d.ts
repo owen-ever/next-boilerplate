@@ -1,4 +1,4 @@
-type WorkspaceMe = {
+type WorkspaceInfo = {
   id: string;
   name: string;
   description: string;

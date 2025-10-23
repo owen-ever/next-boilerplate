@@ -1,11 +1,19 @@
-import { getWorkspaceMe } from '@/api/apis/workspace';
+'use client';
+
+import WorkspaceAPI from '@/api/apis/workspace';
 import { useQuery } from '@tanstack/react-query';
+import { useMemo } from 'react';
 
 // 데이터 fetch가 된 컴포넌트를 활용하는 형태로 작성
 export default function DelayedData() {
-  const { data, isFetching, isPending, isLoading, isStale, refetch } = useQuery<WorkspaceMe, Error, object>({
+  const api = useMemo(() => new WorkspaceAPI(), []);
+
+  const { data, isFetching, isPending, isLoading, isStale, refetch, error } = useQuery<WorkspaceInfo>({
     queryKey: ['delay'],
-    queryFn: getWorkspaceMe,
+    queryFn: async () => {
+      const res = await api.getWorkspaceInfo('1');
+      return res.data;
+    },
     staleTime: 1000 * 10, // 10초
     placeholderData: prev => prev,
   });
@@ -16,6 +24,7 @@ export default function DelayedData() {
       <div>fetching: {JSON.stringify(isFetching)}</div>
       <div>pending: {JSON.stringify(isPending)}</div>
       <div>loading: {JSON.stringify(isLoading)}</div>
+      <div>Error: {error?.message}</div>
       <div>
         <pre>{JSON.stringify(data)}</pre>
       </div>

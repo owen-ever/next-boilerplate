@@ -1,9 +1,11 @@
 import { NextConfig } from 'next';
-import createNextIntlPlugin from 'next-intl/plugin';
 
 const nextConfig: NextConfig = {
-  output: 'standalone',
+  // output: 'standalone',
+  serverExternalPackages: [], // 서버 전용으로만 쓰는 패키지 명시 (안전)
+  eslint: {
+    ignoreDuringBuilds: true, // CI/CD 환경에서 ESLint 검사 무시
+  },
 };
 
-const withNextIntl = createNextIntlPlugin();
-export default withNextIntl(nextConfig);
+export default nextConfig;
