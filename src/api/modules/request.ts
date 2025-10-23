@@ -8,18 +8,25 @@ export type RequestMeta = {
 };
 export type RequestConfig = AxiosRequestConfig & { meta?: RequestMeta };
 
-/** 기본 연동 URL */
+/** server domain URL */
 const SERVER_DOMAIN = process.env.NEXT_PUBLIC_API_BASE_URL || 'https://example.com';
 /** api 호출 타임 아웃 */
 const TIMEOUT_API = 20000;
 
-/** 공통 메타 기본값 */
+/** default meta */
 const _getDefaultMeta = () => ({
   // true면 Axios 전문을 그대로 반환(기본 true: DX 보존)
   useResponseAll: true,
 });
 
-/** 공용 path 조립 + 안전 인코딩 */
+/**
+ * 여러 경로 세그먼트를 안전하게 인코딩하여 하나의 API 경로 문자열로 조립합니다.
+ * @param segments - 경로 세그먼트 (문자열 또는 숫자)
+ * @returns 인코딩된 경로
+ *
+ * @example
+ * buildPath('users', 123) ➝ '/users/123'
+ */
 export function buildPath(...segments: Array<string | number>): string {
   const encoded = segments
     .filter(s => s !== undefined && s !== null && String(s).length > 0)
@@ -27,13 +34,31 @@ export function buildPath(...segments: Array<string | number>): string {
   return '/' + encoded.join('/');
 }
 
+/**
+ * 서버 도메인과 API 경로를 안전하게 연결하여 완전한 URL을 반환합니다.
+ * @param serverDomain - 서버 도메인
+ * @param apiPath - API 경로
+ * @returns 완전한 URL
+ *
+ * @example
+ * joinPath('https://myserver.com/', '/users') ➝ 'https://myserver.com/users'
+ * joinPath('https://myserver.com', 'users')   ➝ 'https://myserver.com/users'
+ */
 const joinPath = (serverDomain: string, apiPath: string) => {
   const root = serverDomain.replace(/\/$/, '');
   const path = apiPath.startsWith('/') ? apiPath : `/${apiPath}`;
   return root + path;
 };
 
-/** 인터셉터 없는 axios 인스턴스 생성 */
+/**
+ * 인터셉터 없이 기본 Axios 인스턴스를 생성합니다.
+ * @param apiPath - API 경로
+ * @param options - Axios 설정 옵션
+ * @returns Axios 인스턴스
+ *
+ * @example
+ * createAxiosRaw('/api', { timeout: 5000 })
+ */
 function createAxiosRaw(apiPath: string, options?: RequestConfig) {
   const instance = axios.create({
     baseURL: joinPath(SERVER_DOMAIN, apiPath),
@@ -53,7 +78,15 @@ function createAxiosRaw(apiPath: string, options?: RequestConfig) {
   return instance;
 }
 
-/** 인터셉터 포함 axios 인스턴스 생성 */
+/**
+ * 요청/응답 인터셉터가 포함된 Axios 인스턴스를 생성합니다.
+ * @param baseURL - 기본 URL
+ * @param options - Axios 설정 옵션
+ * @returns 인터셉터가 설정된 Axios 인스턴스
+ *
+ * @example
+ * createAxios('/api', { timeout: 5000 })
+ */
 function createAxios(baseURL: string, options?: RequestConfig) {
   const instance = createAxiosRaw(baseURL, options);
 
@@ -94,7 +127,6 @@ function createAxios(baseURL: string, options?: RequestConfig) {
   return instance;
 }
 
-/** Axios 인스턴스를 감싼 얇은 래퍼: 대문자 헬퍼 제공 */
 class HttpClient {
   private _axios: AxiosInstance;
   constructor(instance: AxiosInstance) {
@@ -106,31 +138,88 @@ class HttpClient {
     return this._axios;
   }
 
-  /** 공용 path 유틸을 인스턴스에서도 사용 가능하게 노출 */
+  /**
+   * 여러 경로 세그먼트를 안전하게 인코딩하여 API 경로를 생성합니다.
+   * @param segments - 경로 세그먼트 (문자열 또는 숫자)
+   * @returns 인코딩된 경로
+   *
+   * @example
+   * client.path('users', 123) ➝ '/users/123'
+   */
   path(...segments: Array<string | number>) {
     return buildPath(...segments);
   }
 
+  /**
+   * GET 요청을 수행합니다.
+   * @param url - 요청 URL
+   * @param config - 요청 설정
+   * @returns Promise<AxiosResponse<T>>
+   */
   GET<T = unknown>(url: string, config?: RequestConfig) {
     return this._axios.get<T>(url, config);
   }
+  /**
+   * POST 요청을 수행합니다.
+   * @param url - 요청 URL
+   * @param data - 요청 데이터
+   * @param config - 요청 설정
+   * @returns Promise<AxiosResponse<T>>
+   */
   POST<T = unknown, D = unknown>(url: string, data?: D, config?: RequestConfig) {
     return this._axios.post<T, AxiosResponse<T>, D>(url, data, config);
   }
+  /**
+   * PUT 요청을 수행합니다.
+   * @param url - 요청 URL
+   * @param data - 요청 데이터
+   * @param config - 요청 설정
+   * @returns Promise<AxiosResponse<T>>
+   */
   PUT<T = unknown, D = unknown>(url: string, data?: D, config?: RequestConfig) {
     return this._axios.put<T, AxiosResponse<T>, D>(url, data, config);
   }
+  /**
+   * PATCH 요청을 수행합니다.
+   * @param url - 요청 URL
+   * @param data - 요청 데이터
+   * @param config - 요청 설정
+   * @returns Promise<AxiosResponse<T>>
+   */
   PATCH<T = unknown, D = unknown>(url: string, data?: D, config?: RequestConfig) {
     return this._axios.patch<T, AxiosResponse<T>, D>(url, data, config);
   }
+  /**
+   * DELETE 요청을 수행합니다.
+   * @param url - 요청 URL
+   * @param config - 요청 설정
+   * @returns Promise<AxiosResponse<T>>
+   */
   DELETE<T = unknown>(url: string, config?: RequestConfig) {
     return this._axios.delete<T>(url, config);
   }
 }
 
-/** 외부 노출 팩토리들 (예시의 APIInstance에서 사용) */
+/**
+ * 인터셉터가 포함된 HttpClient 인스턴스를 생성합니다.
+ * @param apiPath - API 경로
+ * @param options - Axios 설정 옵션
+ * @returns HttpClient 인스턴스
+ *
+ * @example
+ * const client = service('/api', { timeout: 5000 });
+ */
 export const service = (apiPath: string, options?: RequestConfig) => new HttpClient(createAxios(apiPath, options));
 
+/**
+ * 인터셉터 없이 HttpClient 인스턴스를 생성합니다.
+ * @param apiPath - API 경로
+ * @param options - Axios 설정 옵션
+ * @returns HttpClient 인스턴스
+ *
+ * @example
+ * const client = serviceWithoutInterceptors('/api', { timeout: 5000 });
+ */
 export const serviceWithoutInterceptors = (apiPath: string, options?: RequestConfig) =>
   new HttpClient(createAxiosRaw(apiPath, options));
 

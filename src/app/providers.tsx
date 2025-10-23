@@ -12,8 +12,9 @@ export default function Providers({ children }: { children: ReactNode }) {
       new QueryClient({
         defaultOptions: {
           queries: {
-            staleTime: 60 * 1000, // 1분
-            retry: 1,
+            staleTime: 60 * 1000, // 1분 (데이터 캐시 최대 유지 시간)
+            retry: 1, // 실패시 재시도 횟수
+            refetchOnWindowFocus: false, // 창 포커스 되었을 때 데이터 재획득 여부
           },
         },
       }),

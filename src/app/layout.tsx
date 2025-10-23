@@ -2,7 +2,7 @@
 import type { Metadata } from 'next';
 import { Noto_Sans_KR } from 'next/font/google';
 import './globals.css';
-import JotaiProvider from './providers';
+import Provider from './providers';
 
 const notoSansKR = Noto_Sans_KR({
   variable: '--font-noto-sans-kr',
@@ -26,7 +26,7 @@ export default async function RootLayout({
   return (
     <html>
       <body className={`${notoSansKR.variable} antialiased`}>
-        <JotaiProvider>{children}</JotaiProvider>
+        <Provider>{children}</Provider>
       </body>
     </html>
   );
