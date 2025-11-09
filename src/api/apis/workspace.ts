@@ -13,7 +13,7 @@ class WorkspaceAPI extends APIInstance {
     const resposne = await this.request.GET<WorkspaceInfo>(url, { meta: { ns: 'WorkspaceAPI' } });
 
     // 2) 혹은 모듈 함수 직접 import 해서 사용해도 됨
-    // import { buildPath } from '@/api/modules/request'
+    // import { buildPath } from '@/api/modules/utils'
     // const resposne = await this.request.GET<WorkspaceInfo>(buildPath(workspaceId), { meta: { ns: 'WorkspaceAPI' } });
 
     return resposne;

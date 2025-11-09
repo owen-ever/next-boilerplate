@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios';
 import qs from 'qs';
+import { buildPath, joinPath } from '@/api/modules/utils';
 
 export type RequestMeta = {
   ns?: string; // 에러 메시지 접두 네임스페이스
@@ -18,37 +19,6 @@ const _getDefaultMeta = () => ({
   // true면 Axios 전문을 그대로 반환(기본 true: DX 보존)
   useResponseAll: true,
 });
-
-/**
- * 여러 경로 세그먼트를 안전하게 인코딩하여 하나의 API 경로 문자열로 조립합니다.
- * @param segments - 경로 세그먼트 (문자열 또는 숫자)
- * @returns 인코딩된 경로
- *
- * @example
- * buildPath('users', 123) ➝ '/users/123'
- */
-export function buildPath(...segments: Array<string | number>): string {
-  const encoded = segments
-    .filter(s => s !== undefined && s !== null && String(s).length > 0)
-    .map(s => encodeURIComponent(String(s)));
-  return '/' + encoded.join('/');
-}
-
-/**
- * 서버 도메인과 API 경로를 안전하게 연결하여 완전한 URL을 반환합니다.
- * @param serverDomain - 서버 도메인
- * @param apiPath - API 경로
- * @returns 완전한 URL
- *
- * @example
- * joinPath('https://myserver.com/', '/users') ➝ 'https://myserver.com/users'
- * joinPath('https://myserver.com', 'users')   ➝ 'https://myserver.com/users'
- */
-const joinPath = (serverDomain: string, apiPath: string) => {
-  const root = serverDomain.replace(/\/$/, '');
-  const path = apiPath.startsWith('/') ? apiPath : `/${apiPath}`;
-  return root + path;
-};
 
 /**
  * 인터셉터 없이 기본 Axios 인스턴스를 생성합니다.
