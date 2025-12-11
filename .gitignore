@@ -12,6 +12,9 @@
 /.next/
 /out/
 
+# ai agent
+/.agent/
+
 # production
 /build
 docker-compose.yaml
